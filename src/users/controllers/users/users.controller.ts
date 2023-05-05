@@ -1,7 +1,9 @@
-import { Body, ClassSerializerInterceptor, Controller, Get, HttpException, HttpStatus, Inject, NotFoundException, Param, ParseBoolPipe, ParseIntPipe, Post, Query, Req, Res, UseGuards, UseInterceptors, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, ClassSerializerInterceptor, Controller, Get, HttpException, HttpStatus, Inject, NotFoundException, Param, ParseBoolPipe, ParseIntPipe, Post, Query, Req, Res, UseFilters, UseGuards, UseInterceptors, UsePipes, ValidationPipe } from '@nestjs/common';
 import { ApiOperation, ApiTags, ApiCreatedResponse, ApiBody, ApiParam, ApiOkResponse, ApiNotFoundResponse} from '@nestjs/swagger';
 import { Request, Response } from 'express';
 import { CreateUserDto } from 'src/users/dtos/CreateUser.dto';
+import { UserNotFoundException } from 'src/users/exceptions/UserNotFound.exception';
+import { HttpExceptionFilters } from 'src/users/filters/HttpException.filter';
 import { AuthGuard } from 'src/users/guards/auth/auth.guard';
 // import { ValidateCreateUserPipe } from 'src/users/pipes/validate-create-user/validate-create-user.pipe';
 import { UsersService } from 'src/users/services/users/users.service';
@@ -52,12 +54,14 @@ export class UsersController {
     }
 
     @Get(':id')
+    @UseFilters(HttpExceptionFilters)
     @ApiOperation({summary: 'Get user by id'})
     @ApiParam({name: 'id', type: 'number', description: 'id of user'})
     getUserById(@Param('id', ParseIntPipe) id: number){
         const user = this.userService.getUserById(id);
         if(!user){
-            throw new HttpException('User not found', HttpStatus.BAD_REQUEST);
+            // throw new HttpException('User not found', HttpStatus.BAD_REQUEST);
+            throw new UserNotFoundException(); // custom exception
         }
         return user
     }
