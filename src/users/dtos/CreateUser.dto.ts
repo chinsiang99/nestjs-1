@@ -14,5 +14,10 @@ export class CreateUserDto {
 
     @ApiProperty({required: true})
     @IsNotEmpty()
-    age: number
+    @IsAlphanumeric()
+    password: string
+
+    // @ApiProperty({required: true})
+    // @IsNotEmpty()
+    // age: number
 }

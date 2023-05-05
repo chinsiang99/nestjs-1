@@ -8,9 +8,15 @@ export class ValidateCreateUserPipe implements PipeTransform {
     console.log(value)
     console.log(metadata)
 
-    const parseAgeToInt = parseInt(value.age.toString())
+    // const parseAgeToInt = parseInt(value.age.toString())
+    // if(isNaN(parseAgeToInt)){
+    //   console.log(`${value.age} is not a number`)
+    //   throw new HttpException('Invalid Data Type for property age. Expected number', HttpStatus.BAD_REQUEST)
+    // }
+
+    const parseAgeToInt = parseInt(value.password.toString())
     if(isNaN(parseAgeToInt)){
-      console.log(`${value.age} is not a number`)
+      console.log(`${value.password} is not a number`)
       throw new HttpException('Invalid Data Type for property age. Expected number', HttpStatus.BAD_REQUEST)
     }
 
