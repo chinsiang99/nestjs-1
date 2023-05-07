@@ -1,7 +1,10 @@
-import { Body, ClassSerializerInterceptor, Controller, Get, HttpException, HttpStatus, Inject, NotFoundException, Param, ParseBoolPipe, ParseIntPipe, Post, Query, Req, Res, UseFilters, UseGuards, UseInterceptors, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, ClassSerializerInterceptor, Controller, Delete, Get, HttpException, HttpStatus, Inject, NotFoundException, Param, ParseBoolPipe, ParseIntPipe, Post, Put, Query, Req, Res, UseFilters, UseGuards, UseInterceptors, UsePipes, ValidationPipe } from '@nestjs/common';
 import { ApiOperation, ApiTags, ApiCreatedResponse, ApiBody, ApiParam, ApiOkResponse, ApiNotFoundResponse} from '@nestjs/swagger';
 import { Request, Response } from 'express';
 import { CreateUserDto } from 'src/users/dtos/CreateUser.dto';
+import { CreateUserPostDto } from 'src/users/dtos/CreateUserPost.dto';
+import { CreateUserProfileDto } from 'src/users/dtos/CreateUserProfile.dto';
+import { UpdateUserDto } from 'src/users/dtos/UpdateUser.dto';
 import { UserNotFoundException } from 'src/users/exceptions/UserNotFound.exception';
 import { HttpExceptionFilters } from 'src/users/filters/HttpException.filter';
 import { AuthGuard } from 'src/users/guards/auth/auth.guard';
@@ -22,9 +25,17 @@ export class UsersController {
     }
 
     @Get()
+    // @UseInterceptors(ClassSerializerInterceptor) // to serialize data using interceptors
+    @ApiOperation({summary: 'Get all users'})
     @UseGuards(AuthGuard)
-    getUsers(@Query('sortDesc', ParseBoolPipe) sortDesc: boolean){
-        return this.userService.fetchUsers()
+    async getUsers(@Query('sortDesc', ParseBoolPipe) sortDesc: boolean){
+        // return this.userService.fetchUsers()
+        const users = await this.userService.fetchUsers();
+        console.log(users);
+        // if(users.length){
+        //     return new SerializedUser(users)
+        // }
+        return users;
     }
 
     // in using express way
@@ -45,12 +56,24 @@ export class UsersController {
     // }
 
     @Post('create')
+    @UseInterceptors(ClassSerializerInterceptor) // to serialize data using interceptors
     @UsePipes(new ValidationPipe())
     @ApiOperation({summary: 'Create user'})
     @ApiBody({type: CreateUserDto})
     @ApiCreatedResponse({description: 'Create user successfully', type: CreateUserDto})
     createUser(@Body() userData: CreateUserDto){
         return this.userService.createUser(userData)
+    }
+
+    @Put(':id')
+    updateUserById(@Param('id', ParseIntPipe) id: number, @Body() updateUserDto: UpdateUserDto){
+        this.userService.updateUser(id, updateUserDto);
+    }
+
+    @Delete(':id')
+    @ApiOperation({summary: 'Delete user by id'})
+    async deleteUserById(@Param('id', ParseIntPipe) id: number){
+        await this.userService.deleteUser(id)
     }
 
     @Get(':id')
@@ -79,5 +102,19 @@ export class UsersController {
         }else{
             throw new NotFoundException(`Username with ${username} is not found`);
         }
+    }
+
+    @Post(':id/profiles')
+    @UsePipes(new ValidationPipe())
+    @ApiOperation({summary: 'Create user profile'})
+    createUserProfile(@Param('id', ParseIntPipe) id: number, @Body() createUserProfileDto: CreateUserProfileDto){
+        return this.userService.createUserProfile(createUserProfileDto, id)
+    }
+
+    @Post(':id/posts')
+    @UsePipes(new ValidationPipe())
+    @ApiOperation({summary: 'Create user post'})
+    createUserPost(@Param('id', ParseIntPipe) id: number, @Body() createUserPostDto: CreateUserPostDto){
+        return this.userService.createUserPost(id, createUserPostDto);
     }
 }

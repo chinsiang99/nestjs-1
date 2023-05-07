@@ -3,8 +3,13 @@ import { UsersController } from './controllers/users/users.controller';
 import { UsersService } from './services/users/users.service';
 import { UsersMiddleware } from './middlewares/users/users.middleware';
 import { NextFunction, Request, Response } from 'express';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { UserRepository } from 'src/entities/User.entity';
+import { ProfileRepository } from 'src/entities/Profile.entity';
+import { PostRepository } from 'src/entities/Posts.entity';
 
 @Module({
+  imports: [TypeOrmModule.forFeature([UserRepository, ProfileRepository, PostRepository])],
   controllers: [UsersController],
   // providers: [UsersService]
   providers: [
