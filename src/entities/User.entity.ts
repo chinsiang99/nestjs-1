@@ -10,7 +10,7 @@ export class UserRepository{
     @Column({unique: true})
     username: string
 
-    @Column({unique: true})
+    @Column({unique: true, name: 'email_address', nullable: false})
     email: string
 
     @Column()

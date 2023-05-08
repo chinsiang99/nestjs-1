@@ -5,6 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserRepository } from './entities/User.entity';
 import { ProfileRepository } from './entities/Profile.entity';
 import { PostRepository } from './entities/Posts.entity';
+import entities from './entities/index.entity';
 
 @Module({
   imports: [
@@ -17,7 +18,8 @@ import { PostRepository } from './entities/Posts.entity';
       username: 'root',
       password: 'Siang091',
       database: 'nestjs_mysql',
-      entities: [UserRepository, ProfileRepository, PostRepository],
+      // entities: [UserRepository, ProfileRepository, PostRepository],
+      entities: entities,
       synchronize: true // to see whether need to synchronize with the database or not, normally put false
     })
   ],

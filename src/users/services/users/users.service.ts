@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { plainToClass } from 'class-transformer';
 import { PostRepository } from 'src/entities/Posts.entity';
@@ -6,6 +6,7 @@ import { ProfileRepository } from 'src/entities/Profile.entity';
 import { UserRepository } from 'src/entities/User.entity';
 import { CreateUserDto } from 'src/users/dtos/CreateUser.dto';
 import { SerializedUser, User } from 'src/users/types/User';
+import { comparePassword, hashPassword } from 'src/utils/bcrypt';
 import { CreateUserType, UpdateUserType, CreateUserProfileType, CreateUserPostType } from 'src/utils/types';
 import { Repository } from 'typeorm';
 
@@ -42,21 +43,22 @@ export class UsersService {
         // return this.fakeUsers;
         // return this.fakeUsers.map(user => plainToClass(SerializedUser, user))
         // return this.userReposiroty.find(); // this has no relation, so it will not give back profile id related data
-        return this.userReposiroty.find({relations: ['profile', 'posts']});
+        return this.userReposiroty.find();
+        // return this.userReposiroty.find({relations: ['profile', 'posts']}); // in order o have nested relations
     }
 
-    createUser(userDetails: CreateUserType){
+    async createUser(userDetails: CreateUserType){
+        const password = hashPassword(userDetails.password);
         const newUser = this.userReposiroty.create({
-            ...userDetails, createdAt: new Date()
+            ...userDetails, password, createdAt: new Date()
         })
-        return this.userReposiroty.save(newUser);
+        return await this.userReposiroty.save(newUser);
         // this.fakeUsers.push(userDetails);
         // return this.fakeUsers;
     }
 
     getUserById(id: number){
-        return null
-        return {id: 1, username: 'Anson', email: 'anson@gmail.com'}
+        return this.userReposiroty.findOneBy({id: id})
     }
 
     getUserByUsername(username: string){
@@ -120,5 +122,22 @@ export class UsersService {
             console.log("there is something wrong!")
         }
 
+    }
+
+    async login(username: string, password: string){
+        const userDB = await this.userReposiroty.findOneBy({username});
+        if(userDB){
+            let result = comparePassword(password, userDB.password)
+            if(result){
+                console.log("Password is matched");
+                return ({
+                    status: 200,
+                    message: "Login successfully"
+                })
+            }
+            console.log("Login failed");
+            // throw new HttpException("Password does not match", HttpStatus.FORBIDDEN);
+            throw new UnauthorizedException("Password does not match");
+        }
     }
 }
