@@ -17,12 +17,18 @@ export class User {
 }
 
 export class SerializedUser{
+    id: number
+
     username: string
 
     email: string
 
     @Exclude()
     password: string
+
+    createdAt: Date
+
+    authStrategy: string
 
     constructor(partial: Partial<SerializedUser>){
         Object.assign(this, partial)

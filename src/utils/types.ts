@@ -1,3 +1,5 @@
+import { ApiProperty } from "@nestjs/swagger"
+
 export type CreateUserType = {
     username: string
     email: string
@@ -21,4 +23,21 @@ export type CreateUserPostType = {
     title: string
     description: string
     userId: number
+}
+
+export class GetAllUserResponseType {
+    @ApiProperty()
+    username: string
+
+    @ApiProperty()
+    email: string
+
+    @ApiProperty()
+    createdAt: Date
+
+    @ApiProperty()
+    authStrategy: string | null
+
+    @ApiProperty()
+    id: number
 }

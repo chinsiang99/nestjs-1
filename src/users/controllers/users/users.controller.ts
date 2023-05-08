@@ -1,9 +1,11 @@
-import { Body, ClassSerializerInterceptor, Controller, Delete, Get, HttpException, HttpStatus, Inject, NotFoundException, Param, ParseBoolPipe, ParseIntPipe, Post, Put, Query, Req, Res, UseFilters, UseGuards, UseInterceptors, UsePipes, ValidationPipe } from '@nestjs/common';
-import { ApiOperation, ApiTags, ApiCreatedResponse, ApiBody, ApiParam, ApiOkResponse, ApiNotFoundResponse} from '@nestjs/swagger';
+import { GetAllUserResponseType } from './../../../utils/types';
+import { Body, ClassSerializerInterceptor, Controller, Delete, Get, HttpCode, HttpException, HttpStatus, Inject, NotFoundException, Param, ParseBoolPipe, ParseIntPipe, Post, Put, Query, Req, Res, UseFilters, UseGuards, UseInterceptors, UsePipes, ValidationPipe } from '@nestjs/common';
+import { ApiOperation, ApiTags, ApiCreatedResponse, ApiBody, ApiParam, ApiOkResponse, ApiNotFoundResponse, ApiHeader} from '@nestjs/swagger';
 import { Request, Response } from 'express';
 import { CreateUserDto } from 'src/users/dtos/CreateUser.dto';
 import { CreateUserPostDto } from 'src/users/dtos/CreateUserPost.dto';
 import { CreateUserProfileDto } from 'src/users/dtos/CreateUserProfile.dto';
+import { LoginUserDto } from 'src/users/dtos/LoginUser.dto';
 import { UpdateUserDto } from 'src/users/dtos/UpdateUser.dto';
 import { UserNotFoundException } from 'src/users/exceptions/UserNotFound.exception';
 import { HttpExceptionFilters } from 'src/users/filters/HttpException.filter';
@@ -25,16 +27,24 @@ export class UsersController {
     }
 
     @Get()
-    // @UseInterceptors(ClassSerializerInterceptor) // to serialize data using interceptors
+    @UseInterceptors(ClassSerializerInterceptor) // to serialize data using interceptors
     @ApiOperation({summary: 'Get all users'})
+    @ApiHeader({
+        name: 'authorization',
+        description: 'authorization',
+        schema: {
+          type: 'string',
+        },
+    })
+    @ApiOkResponse({type: GetAllUserResponseType, description: "Get all users successfully"})
     @UseGuards(AuthGuard)
     async getUsers(@Query('sortDesc', ParseBoolPipe) sortDesc: boolean){
         // return this.userService.fetchUsers()
         const users = await this.userService.fetchUsers();
         console.log(users);
-        // if(users.length){
-        //     return new SerializedUser(users)
-        // }
+        if(users.length){
+            return users.map(user=> new SerializedUser(user))
+        }
         return users;
     }
 
@@ -60,33 +70,38 @@ export class UsersController {
     @UsePipes(new ValidationPipe())
     @ApiOperation({summary: 'Create user'})
     @ApiBody({type: CreateUserDto})
-    @ApiCreatedResponse({description: 'Create user successfully', type: CreateUserDto})
-    createUser(@Body() userData: CreateUserDto){
-        return this.userService.createUser(userData)
+    @ApiCreatedResponse({description: 'Create user successfully', type: GetAllUserResponseType})
+    async createUser(@Body() userData: CreateUserDto){
+        let user = await this.userService.createUser(userData);
+        return new SerializedUser(user)
     }
 
     @Put(':id')
+    @ApiOperation({summary: 'Update user by ID'})
+    @ApiParam({name: 'id', type: 'number', description: 'ID of user'})
     updateUserById(@Param('id', ParseIntPipe) id: number, @Body() updateUserDto: UpdateUserDto){
         this.userService.updateUser(id, updateUserDto);
     }
 
     @Delete(':id')
     @ApiOperation({summary: 'Delete user by id'})
+    @ApiParam({name: 'id', type: 'number', description: 'ID of user'})
     async deleteUserById(@Param('id', ParseIntPipe) id: number){
         await this.userService.deleteUser(id)
     }
 
     @Get(':id')
+    @UseInterceptors(ClassSerializerInterceptor) // to serialize data using interceptors
     @UseFilters(HttpExceptionFilters)
     @ApiOperation({summary: 'Get user by id'})
-    @ApiParam({name: 'id', type: 'number', description: 'id of user'})
-    getUserById(@Param('id', ParseIntPipe) id: number){
-        const user = this.userService.getUserById(id);
+    @ApiParam({name: 'id', type: 'number', description: 'ID of user'})
+    async getUserById(@Param('id', ParseIntPipe) id: number){
+        const user = await this.userService.getUserById(id);
         if(!user){
             // throw new HttpException('User not found', HttpStatus.BAD_REQUEST);
             throw new UserNotFoundException(); // custom exception
         }
-        return user
+        return new SerializedUser(user);
     }
 
     @Get('/username/:username')
@@ -116,5 +131,12 @@ export class UsersController {
     @ApiOperation({summary: 'Create user post'})
     createUserPost(@Param('id', ParseIntPipe) id: number, @Body() createUserPostDto: CreateUserPostDto){
         return this.userService.createUserPost(id, createUserPostDto);
+    }
+
+    @Post('login')
+    @HttpCode(HttpStatus.OK)
+    @UsePipes(ValidationPipe)
+    login(@Body() userCredentials: LoginUserDto){
+        return this.userService.login(userCredentials.username, userCredentials.password);
     }
 }

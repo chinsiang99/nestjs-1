@@ -9,7 +9,8 @@ export class UsersMiddleware implements NestMiddleware {
     const {authorization} = req.headers;
     
     if(!authorization){
-      throw new HttpException('No Authorization Found', HttpStatus.FORBIDDEN)
+      // throw new HttpException('No Authorization Found', HttpStatus.FORBIDDEN)
+      console.log("no authorization found")
     }
 
     if(authorization){
