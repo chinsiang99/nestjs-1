@@ -41,3 +41,22 @@ export class GetAllUserResponseType {
     @ApiProperty()
     id: number
 }
+
+export class LoginUserSuccessfulType{
+    @ApiProperty()
+    status: 200
+    
+    @ApiProperty()
+    message: "Login successfully"
+}
+
+export class LoginUserUnsuccessfulType{
+    @ApiProperty()
+    statusCode: 401
+
+    @ApiProperty()
+    message: "Password does not match"
+
+    @ApiProperty()
+    error: "Unauthorized"
+}

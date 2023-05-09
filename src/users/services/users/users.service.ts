@@ -62,7 +62,8 @@ export class UsersService {
     }
 
     getUserByUsername(username: string){
-        const user = this.fakeUsers.find(user => user.username === username)
+        const user = this.userReposiroty.findOneBy({username: username})
+        // const user = this.fakeUsers.find(user => user.username === username)
         // return plainToClass(SerializedUser, user);
         return user;
     }
@@ -138,6 +139,8 @@ export class UsersService {
             console.log("Login failed");
             // throw new HttpException("Password does not match", HttpStatus.FORBIDDEN);
             throw new UnauthorizedException("Password does not match");
+        }else{
+            throw new UnauthorizedException("User not found");
         }
     }
 }

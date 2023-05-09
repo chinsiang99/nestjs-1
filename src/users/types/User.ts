@@ -16,6 +16,29 @@ export class User {
     password: string
 }
 
+export class SerializedUserType{
+
+    @ApiProperty({required: true})
+    @IsString()
+    username: string
+
+    @ApiProperty({required: true})
+    @IsString()
+    id: string
+
+    @ApiProperty({required: true})
+    @IsEmail()
+    email: string
+
+    @ApiProperty({required: true})
+    @IsString()
+    createdAt: Date
+
+    @ApiProperty({required: true})
+    @IsString()
+    authStrategy: string
+}
+
 export class SerializedUser{
     id: number
 

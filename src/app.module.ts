@@ -20,7 +20,7 @@ import entities from './entities/index.entity';
       database: 'nestjs_mysql',
       // entities: [UserRepository, ProfileRepository, PostRepository],
       entities: entities,
-      synchronize: true // to see whether need to synchronize with the database or not, normally put false
+      synchronize: false // to see whether need to synchronize with the database or not, normally put false
     })
   ],
   controllers: [],
